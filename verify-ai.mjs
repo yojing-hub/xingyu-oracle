@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import {astro} from 'iztro';
+import {validateReadingInput,buildGenerationRequest,generateReading} from './ai-service.mjs';
+const input={mode:'combined',question:'轉職時應該怎麼衡量自主性和工作穩定？',context:'目前工時長，但新職位收入較少。',chart:JSON.parse(JSON.stringify(astro.bySolar('1995-6-15',4,'女',true,'zh-TW'))),cards:[{name:'星星',reversed:false},{name:'寶劍二',reversed:true},{name:'錢幣八',reversed:false}]};
+const clean=validateReadingInput(input);
+assert.equal(clean.chart.palaces.length,12);assert.equal(clean.chart.solarDate,undefined);assert.equal(clean.chart.gender,undefined);
+assert.equal(clean.cards[1].position,'需要留意');assert.throws(()=>validateReadingInput({...input,cards:[input.cards[0],input.cards[0],input.cards[2]]}));
+assert.throws(()=>validateReadingInput({...input,question:'a'.repeat(501)}));assert.throws(()=>validateReadingInput({...input,history:[{role:'user',content:'追問'}]}));
+const follow=buildGenerationRequest({...input,history:[{role:'assistant',content:'初次分析'},{role:'user',content:'如果新職位能遠端工作呢？'}]},'openai/gpt-6.1-sol');
+assert.equal(follow.messages.length,3);assert.match(follow.messages[0].content,/follow_up/);assert.equal(follow.messages[2].content,'如果新職位能遠端工作呢？');
+const env={VERCEL_OIDC_TOKEN:'test-token',AI_GATEWAY_MODEL:'openai/gpt-6.1-sol'};
+const answer=await generateReading(input,env,async request=>{assert.equal(request.maxRetries,0);assert.equal(request.model,env.AI_GATEWAY_MODEL);assert(!request.messages[0].content.includes('1995'));return {text:'合約測試回應，非真實 AI 解讀。',finishReason:'stop'}});
+assert.equal(answer.provider,'vercel-ai-gateway');
+await assert.rejects(generateReading(input,{},async()=>{}),e=>e.code==='NOT_CONFIGURED');
+await assert.rejects(generateReading(input,env,async()=>({text:'截斷',finishReason:'length'})),e=>e.code==='AI_INCOMPLETE');
+await assert.rejects(generateReading(input,env,async()=>{throw Object.assign(Error('secret'),{statusCode:402})}),e=>e.code==='AI_BUDGET'&&!e.message.includes('secret'));
+console.log('AI 輸入清理、命盤、牌面、追問上下文、錯誤處理驗證通過（未呼叫模型）。');

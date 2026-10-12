@@ -6,9 +6,11 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node verify.mjs",
+    "test": "node verify.mjs && node verify-ai.mjs",
     "preview": "node preview.mjs"
   },
-  "dependencies": { "iztro": "2.6.1" }
+  "dependencies": {
+    "ai": "^7.0.137",
+    "iztro": "2.6.1"
+  }
 }
-
