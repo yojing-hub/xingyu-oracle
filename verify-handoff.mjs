@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {astro} from 'iztro';
+import {createGPTPrompt,safeGPTLink} from './gpt-handoff.js';
+const r={mode:'combined',question:'主管加派工作，如何協商工時？',context:'已連續三週加班，想保留休息時間。',place:'不應傳出的地點',chart:JSON.parse(JSON.stringify(astro.bySolar('1995-6-15',4,'女',true,'zh-TW'))),cards:[{card:['星星'],reversed:false},{card:['寶劍二'],reversed:true},{card:['錢幣八'],reversed:false}]};
+const prompt=createGPTPrompt(r),facts=JSON.parse(prompt.slice(prompt.indexOf('{')));
+assert.equal(facts.question,r.question);assert.equal(facts.context,r.context);assert.equal(facts.chart.palaces.length,12);assert.equal(facts.cards[1].name,'寶劍二');assert.equal(facts.cards[1].reversed,true);
+assert(!prompt.includes('1995'));assert(!prompt.includes(r.place));assert.equal(facts.chart.solarDate,undefined);assert.equal(facts.chart.gender,undefined);
+const tarot=JSON.parse(createGPTPrompt({...r,mode:'tarot',chart:null}).split('：\n').at(-1));assert.equal(tarot.chart,null);
+assert.equal(safeGPTLink('https://evil.example/g/demo'),'https://chatgpt.com/');assert.equal(safeGPTLink('javascript:alert(1)'),'https://chatgpt.com/');assert.equal(safeGPTLink('https://chatgpt.com@good.example/g/demo'),'https://chatgpt.com/');
+assert.equal(safeGPTLink('https://chatgpt.com/g/demo?q=private#secret'),'https://chatgpt.com/g/demo');
+console.log('ChatGPT 轉接資料驗證通過：完整問題、真實星曜與牌面、排除出生資料、限制目的地與網址資料。');

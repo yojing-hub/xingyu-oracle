@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node verify.mjs && node verify-ai.mjs",
+    "test": "node verify.mjs && node verify-ai.mjs && node verify-handoff.mjs",
     "preview": "node preview.mjs"
   },
   "dependencies": {

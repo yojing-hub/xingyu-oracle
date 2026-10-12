@@ -1,2 +1,2 @@
-// Public configuration only. API keys belong in the backend environment.
-window.XINGYU_CONFIG={aiEndpoint:''};
+// Public configuration. No API keys.
+window.XINGYU_CONFIG={analysisMode:'chatgpt',gptUrl:'',aiEndpoint:''};
